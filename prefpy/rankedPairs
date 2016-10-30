@@ -1,0 +1,19 @@
+import io
+import math
+import itertools
+from profile import Profile
+from preference import Preference
+import mechanism
+
+class RankedPairs(Mechanism):
+    def getWinners(self, profile):
+        pass
+
+
+    def getRanking(self, profile):
+        pass
+
+
+
+
+

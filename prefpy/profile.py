@@ -2,11 +2,11 @@
 Author: Kevin J. Hwang
 """
 import copy
-import io
+from . import io
 import itertools
 import math
 import json
-from preference import Preference
+from .preference import Preference
 
 class Profile():
     """
