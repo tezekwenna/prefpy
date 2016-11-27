@@ -13,3 +13,5 @@ if __name__ == '__main__' :
 
     rankpairMech=RankedPairs()
     print(rankpairMech.getOneWinner(data))
+    #edgeList=rankpairMech.getSortedEdges(data)
+    #rankpairMech.createNXGraph(edgeList)
