@@ -13,24 +13,37 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import copy
 
+def getTopRank(netxGraph):
+		topRanks = []
+		for i in netxGraph.nodes():
+			if netxGraph.in_edges(i) == []:
+				topRanks.append(i)
+		return topRanks
+
 class branchedGraph():
 	def __init__(self, rL, DG):
 		self.remainingList = rL
 		self.DG = DG
-		
-	def getNextEdge(self):
+	
+	def getNextEdge(self, currentWinners):
 		branchedGraphList = []
 		branchedEdges, branchedRemEdges = self.findTies()
 
 		for i in range(len(branchedEdges)):
 			tmpGraph = self.DG.copy()
 			tmpEdge = branchedEdges[i]
-			tmpGraph.add_edge(tmpEdge[1], tmpEdge[2], weight=tmpEdge[0])
-			try: 
-				nx.find_cycle(tmpGraph)
-			except:
-				tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
-				branchedGraphList.insert(0, tmpBranchedGraph)
+			tmpGraph.add_edge(tmpEdge[1], tmpEdge[2], weight=tmpEdge[0])	
+			if not tmpGraph.has_edge(tmpEdge[2], tmpEdge[1]):
+				try: 
+					nx.find_cycle(tmpGraph)
+				except:
+					if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):					
+						tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
+						branchedGraphList.insert(0, tmpBranchedGraph)
+			else:
+				if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):					
+					tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
+					branchedGraphList.insert(0, tmpBranchedGraph)
 		return branchedGraphList
 			
 		
@@ -132,14 +145,14 @@ class RankedPairs(Mechanism):
 		pass
 		
 	def getTopRank(self, graphList):
-		winners = []
+		topRanks = []
 		for bGraph in graphList:
 			newGraph = bGraph.DG
 			for i in newGraph.nodes():
 				inedges = newGraph.in_edges(i)
 				if inedges == []:
-					winners.append(i)
-		return winners
+					topRanks.append(i)
+		return topRanks
 		
 
 	def getWinners(self, prof=None,edges=None):
@@ -149,22 +162,23 @@ class RankedPairs(Mechanism):
 			edges = sorted(edges, key=lambda weight: weight[0], reverse = True)
 		print(edges)
 		DG = nx.DiGraph()
-		newBranchedGraph = branchedGraph(edges, DG)
-		graphs = newBranchedGraph.getNextEdge()
 		winners = []
 		doneList = []
+		newBranchedGraph = branchedGraph(edges, DG)
+		graphs = newBranchedGraph.getNextEdge(winners)
 		while(len(graphs) != 0):
 		#Iterating through graph, appending to tmp graphs list such that we arent modifying the list we are iterating over
 			tmpGraphs = []
 			for graph in graphs: 
-				tmpNextEdgeList = graph.getNextEdge()
+				tmpNextEdgeList = graph.getNextEdge(winners)
 				if tmpNextEdgeList == []:
 					doneList.append(graph) 
+					winners += self.getTopRank(doneList)
 				else:
 					tmpGraphs = tmpGraphs + tmpNextEdgeList
 			graphs = copy.copy(tmpGraphs)
 				
-		winners = self.getTopRank(doneList)
+		#winners = self.getTopRank(doneList)
 		print(len(doneList))
 		for winner in doneList:
 			self.drawGraph(winner.DG)
