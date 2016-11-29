@@ -1,3 +1,8 @@
+'''
+Authors: Bilal Salam, Levin Huang, Lucky Cho
+'''
+
+
 import io
 import math
 import itertools
@@ -25,7 +30,7 @@ class branchedGraph():
 				nx.find_cycle(tmpGraph)
 			except:
 				tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
-				branchedGraphList.append(tmpBranchedGraph)
+				branchedGraphList.insert(0, tmpBranchedGraph)
 		return branchedGraphList
 			
 		
@@ -126,7 +131,7 @@ class RankedPairs(Mechanism):
 	def getWinnerWithTieBreakingMech(self,prof,prefList):
 		pass
 		
-	def getWinner(self, graphList):
+	def getTopRank(self, graphList):
 		winners = []
 		for bGraph in graphList:
 			newGraph = bGraph.DG
@@ -149,17 +154,18 @@ class RankedPairs(Mechanism):
 		winners = []
 		doneList = []
 		while(len(graphs) != 0):
+		#Iterating through graph, appending to tmp graphs list such that we arent modifying the list we are iterating over
 			tmpGraphs = []
-			
-			for graph in graphs:
+			for graph in graphs: 
 				tmpNextEdgeList = graph.getNextEdge()
 				if tmpNextEdgeList == []:
-					doneList.append(graph)
+					doneList.append(graph) 
 				else:
 					tmpGraphs = tmpGraphs + tmpNextEdgeList
 			graphs = copy.copy(tmpGraphs)
 				
-		winners = self.getWinner(doneList)
+		winners = self.getTopRank(doneList)
+		print(len(doneList))
 		for winner in doneList:
 			self.drawGraph(winner.DG)
 		plt.show()
