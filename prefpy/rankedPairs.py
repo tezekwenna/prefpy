@@ -32,36 +32,37 @@ class branchedGraph():
 		for i in range(len(branchedEdges)):
 			tmpGraph = self.DG.copy()
 			tmpEdge = branchedEdges[i]
-			tmpGraph.add_edge(tmpEdge[1], tmpEdge[2], weight=tmpEdge[0])	
-			if not tmpGraph.has_edge(tmpEdge[2], tmpEdge[1]):
-				try: 
-					nx.find_cycle(tmpGraph)
-				except:
-					if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):					
-						tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
-						branchedGraphList.insert(0, tmpBranchedGraph)
-			else:
+			
+			self.addOneWayEdge(tmpGraph, tmpEdge)
+			try: 
+				nx.find_cycle(tmpGraph)
+				tmpGraph.remove_edge(tmpEdge[1],tmpEdge[2])
+				tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
+				branchedGraphList.insert(0, tmpBranchedGraph)
+			except:
 				if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):					
 					tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
 					branchedGraphList.insert(0, tmpBranchedGraph)
 		return branchedGraphList
+		
+	def addOneWayEdge(self, graph, edge):
+		if not graph.has_edge(edge[2], edge[1]):
+			graph.add_edge(edge[1], edge[2], weight=edge[0])
 			
 		
 	def findTies(self):
 		branchedRemEdges = [] #list of lists
 		edges = self.remainingList
-		tmpList = []
+		tmpList = [] #holds list of edges to branch out to
 		tmpRemEdges = []
 		if len(edges) > 0:
 			tmpWeight = edges[0][0]
-			
 			for i in range(len(edges)):
-				if edges[i][0] == tmpWeight:
-					tmpRemEdges = copy.copy(edges)
-					del tmpRemEdges[i]
+				if edges[i][0] == tmpWeight: #we find tied edge that we want to use
+					tmpRemEdges = copy.copy(edges) #deep copy edge list
+					del tmpRemEdges[i] #remove tied edge from the remaining list
 					branchedRemEdges.append(tmpRemEdges)
-					tmpList.append(edges[i])
-		
+					tmpList.append(edges[i]) #add the edge we are using to the list of edges to extend G`
 		return tmpList, branchedRemEdges
 	
 
