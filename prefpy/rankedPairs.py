@@ -98,8 +98,9 @@ class RankedPairs(Mechanism):
 		for cand1 in prof.candMap.keys():
 			for cand2 in prof.candMap.keys():
 				if cand1 is not cand2:
-					if wmg[cand1][cand2] >= 0:
-						edges.append((wmg[cand1][cand2], prof.candMap[cand1], prof.candMap[cand2]))
+					#if wmg[cand1][cand2] >= 0:
+
+					edges.append((wmg[cand1][cand2], prof.candMap[cand1], prof.candMap[cand2]))
 		edges = sorted(edges, key=lambda weight: weight[0], reverse = True)
 
 		return edges
@@ -159,6 +160,14 @@ class RankedPairs(Mechanism):
 					topRanks.append(i)
 		return topRanks
 		
+	def initDG(self, edges):
+		nodeSet=set()
+		DG = nx.DiGraph()
+		for i in range(len(edges)):
+			nodeSet.add(edges[i][1])
+
+		DG.add_nodes_from(nodeSet)
+		return DG
 
 	def getWinners(self, prof=None,edges=None):
 		if edges is None:
@@ -166,7 +175,9 @@ class RankedPairs(Mechanism):
 		else:
 			edges = sorted(edges, key=lambda weight: weight[0], reverse = True)
 		print(edges)
-		DG = nx.DiGraph()
+		#DG = nx.DiGraph()
+		DG=self.initDG(edges)
+
 		winners = []
 		doneList = []
 		newBranchedGraph = branchedGraph(edges, DG)
