@@ -24,7 +24,11 @@ class branchedGraph():
 	def __init__(self, rL, DG):
 		self.remainingList = rL
 		self.DG = DG
-	
+	def isDone(self):
+		if len(self.remainingList) ==0:
+			return True
+		else:
+			return False
 	def getNextEdge(self, currentWinners):
 		branchedGraphList = []
 		branchedEdges, branchedRemEdges = self.findTies()
@@ -34,22 +38,22 @@ class branchedGraph():
 			tmpEdge = branchedEdges[i]
 			
 			self.addOneWayEdge(tmpGraph, tmpEdge)
-			try: 
-				nx.find_cycle(tmpGraph)
-				tmpGraph.remove_edge(tmpEdge[1],tmpEdge[2])
+
+			if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):
 				tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
-				branchedGraphList.insert(0, tmpBranchedGraph)
-			except:
-				if not set(getTopRank(tmpGraph)).issubset(set(currentWinners)):					
-					tmpBranchedGraph = branchedGraph(branchedRemEdges[i], tmpGraph)
-					branchedGraphList.insert(0, tmpBranchedGraph)
+				branchedGraphList.append( tmpBranchedGraph)
 		return branchedGraphList
 		
 	def addOneWayEdge(self, graph, edge):
 		if not graph.has_edge(edge[2], edge[1]):
 			graph.add_edge(edge[1], edge[2], weight=edge[0])
+			try:
+				nx.find_cycle(graph)
+				graph.remove_edge(edge[1], edge[2])
+			except:
+				pass
 			
-		
+
 	def findTies(self):
 		branchedRemEdges = [] #list of lists
 		edges = self.remainingList
@@ -62,7 +66,7 @@ class branchedGraph():
 					tmpRemEdges = copy.copy(edges) #deep copy edge list
 					del tmpRemEdges[i] #remove tied edge from the remaining list
 					branchedRemEdges.append(tmpRemEdges)
-					tmpList.append(edges[i]) #add the edge we are using to the list of edges to extend G`
+					tmpList.append(copy.copy(edges[i])) #add the edge we are using to the list of edges to extend G`
 		return tmpList, branchedRemEdges
 	
 
@@ -170,14 +174,17 @@ class RankedPairs(Mechanism):
 		while(len(graphs) != 0):
 		#Iterating through graph, appending to tmp graphs list such that we arent modifying the list we are iterating over
 			tmpGraphs = []
-			for graph in graphs: 
-				tmpNextEdgeList = graph.getNextEdge(winners)
-				if tmpNextEdgeList == []:
-					doneList.append(graph) 
-					winners += self.getTopRank(doneList)
-				else:
-					tmpGraphs = tmpGraphs + tmpNextEdgeList
-			graphs = copy.copy(tmpGraphs)
+			graph=graphs.pop(0)
+
+			tmpNextEdgeList = graph.getNextEdge(winners)
+			if tmpNextEdgeList == [] and graph.isDone():
+				doneList.append(graph)
+				winners += self.getTopRank(doneList)
+
+			else:
+
+				graphs=tmpNextEdgeList+graphs
+
 				
 		#winners = self.getTopRank(doneList)
 		print(len(doneList))
